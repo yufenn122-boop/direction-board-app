@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>方向板</title>
+  <style>
+    :root{
+      --bg:#f5f7fb; --card:#fff; --soft:#f8fafc; --text:#111827; --muted:#6b7280;
+      --line:#e5e7eb; --accent:#2563eb; --accentSoft:#eff6ff; --green:#059669;
+      --orange:#d97706; --red:#dc2626; --shadow:0 8px 24px rgba(15,23,42,.06);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#f8fbff 0%,#f5f7fb 28%,#f5f7fb 100%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;line-height:1.5}
+    button,input,textarea,select{font:inherit}
+    .app{max-width:760px;margin:0 auto;min-height:100vh;padding:18px 16px 96px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .logo{width:42px;height:42px;border-radius:14px;background:#111827;color:#fff;display:grid;place-items:center;font-weight:800;box-shadow:var(--shadow)}
+    .title{font-size:18px;font-weight:800}.subtitle{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+    .statusMini{font-size:11px;color:var(--muted);background:rgba(255,255,255,.86);border:1px solid var(--line);padding:6px 10px;border-radius:999px;white-space:nowrap}
+    .page{display:none}.page.active{display:block}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+    .hero{background:linear-gradient(180deg,#fff 0%,#f9fbff 100%)}
+    .sectionHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+    .sectionHead h2{font-size:16px;margin:0;font-weight:800}
+    .tag{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;font-size:12px;color:#1d4ed8;background:var(--accentSoft);border:1px solid #dbeafe;white-space:nowrap}
+    .label{display:block;margin-bottom:6px;font-size:12px;color:var(--muted)}
+    textarea,input[type="text"],input[type="number"],input[type="date"],select{width:100%;background:#fff;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:12px 13px;outline:none;font-size:14px}
+    textarea{min-height:76px;resize:vertical}
+    input:focus,textarea:focus,select:focus{border-color:#93c5fd;box-shadow:0 0 0 4px rgba(37,99,235,.08)}
+    .focusText{margin-top:12px;padding:14px;border-radius:16px;background:#111827;color:#fff}
+    .focusText .small{font-size:12px;opacity:.72;margin-bottom:4px}.focusText .big{font-size:16px;font-weight:800}
+    .hintBox,.statusBlock{margin-top:12px;padding:12px 14px;background:var(--soft);border:1px solid var(--line);border-radius:14px;color:var(--muted);font-size:13px}
+    .statusBlock{margin-top:0;margin-bottom:10px}.statusBlock strong{color:var(--text)}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.grow{flex:1;min-width:0}
+    .btn{border:1px solid var(--line);border-radius:14px;padding:11px 14px;cursor:pointer;background:#f3f4f6;color:var(--text);transition:.16s ease}
+    .btn:hover{transform:translateY(-1px)}.btn.primary{background:#111827;color:#fff;border-color:#111827}
+    .btn.soft{background:var(--accentSoft);color:#1d4ed8;border-color:#dbeafe}.btn.success{background:#ecfdf5;color:var(--green);border-color:#d1fae5}
+    .btn.warn{background:#fff7ed;color:var(--orange);border-color:#fed7aa}.btn.danger{background:#fef2f2;color:var(--red);border-color:#fecaca}.btn.block{width:100%}
+    .statsRow,.tripleGrid,.quickGrid,.detailGrid,.actionRow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .quickGrid,.detailGrid,.actionRow{grid-template-columns:1fr 1fr}
+    .miniStat,.progressBox{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}
+    .miniStat .labelText,.progressBox .k{color:var(--muted);font-size:12px;margin-bottom:4px}
+    .miniStat .num,.progressBox .v{font-size:20px;font-weight:800;line-height:1.2}
+    .bar,.subBar{height:8px;border-radius:999px;background:#eef2f7;overflow:hidden;margin-top:8px}
+    .bar>span,.subBar>span{display:block;height:100%;background:linear-gradient(90deg,#111827,#2563eb);border-radius:999px;width:0%}
+    .subBar{height:7px}
+    ul.clean{list-style:none;padding:0;margin:0}
+    .listItem{display:flex;align-items:flex-start;gap:10px;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line)}
+    .listItem:last-child{border-bottom:0;padding-bottom:0}.listItem:first-child{padding-top:0}
+    .taskDone .text{text-decoration:line-through;color:#9ca3af}.taskLeft{display:flex;gap:10px;align-items:flex-start;flex:1;min-width:0}
+    .taskLeft input[type="checkbox"],.prepItem input{width:18px;height:18px;margin-top:2px;accent-color:#111827}
+    .text{word-break:break-word}.tiny{color:var(--muted);font-size:12px}.empty{color:var(--muted);font-size:13px;padding:2px 0}
+    .goalRow{padding:12px 0;border-bottom:1px solid var(--line)}.goalRow:last-child{border-bottom:0;padding-bottom:0}.goalRow:first-child{padding-top:0}
+    .goalTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.goalName{font-size:15px;font-weight:800}.goalMeta{font-size:12px;color:var(--muted)}
+    .goalPct{font-size:12px;color:#1d4ed8;background:var(--accentSoft);border:1px solid #dbeafe;border-radius:999px;padding:4px 8px;white-space:nowrap}
+    details.goalDetail{margin-top:8px;background:var(--soft);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+    details.goalDetail>summary{list-style:none;cursor:pointer;padding:10px 12px;font-size:13px;color:var(--muted)}
+    details.goalDetail>summary::-webkit-details-marker{display:none}.detailInner{padding:0 12px 12px}.field.full{grid-column:1/-1}
+    .prepList{display:grid;gap:8px;margin-top:10px}.prepItem{display:flex;gap:8px;align-items:flex-start;font-size:13px}
+    .pillLine{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.pill{font-size:12px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 10px}
+    .bottomNav{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);width:min(760px,calc(100% - 20px));background:rgba(255,255,255,.95);border:1px solid rgba(229,231,235,.95);box-shadow:0 12px 30px rgba(15,23,42,.1);border-radius:18px;padding:8px;display:grid;grid-template-columns:repeat(5,1fr);gap:6px;backdrop-filter:blur(12px);z-index:20}
+    .tabBtn{border:0;background:transparent;border-radius:14px;padding:10px 6px;font-size:12px;color:var(--muted);cursor:pointer}.tabBtn.active{background:#111827;color:#fff}
+    .toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(10px);width:min(540px,calc(100% - 24px));background:#111827;color:#fff;border-radius:14px;padding:12px 14px;opacity:0;pointer-events:none;transition:.18s ease;box-shadow:0 12px 30px rgba(0,0,0,.18);z-index:30}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .hidden-file{display:none}
+    @media(max-width:640px){.statsRow,.tripleGrid,.quickGrid,.detailGrid,.actionRow{grid-template-columns:1fr}.subtitle{max-width:170px}.app{padding-left:14px;padding-right:14px}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand"><div class="logo">✓</div><div><div class="title">方向板</div><div class="subtitle">主线成长 + 30w 现金目标</div></div></div>
+    <div class="statusMini" id="headerSyncMini">本地保存中</div>
+  </div>
+
+  <section class="page active" id="page-home">
+    <div class="card hero">
+      <div class="sectionHead"><h2>北极星总目标</h2><span class="tag">保留在首页</span></div>
+      <label class="label">这一阶段最重要的坐标</label>
+      <textarea id="northStar"></textarea>
+      <div class="focusText"><div class="small">今天只做</div><div class="big" id="focusPreview">先做主线。</div></div>
+      <div style="margin-top:12px"><label class="label">今天的主线动作</label><textarea id="todayFocus"></textarea></div>
+      <div class="hintBox" id="directionHint"></div>
+      <div class="statsRow" id="stats" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <div class="sectionHead"><h2>30w 现金目标</h2><span class="tag">截止 2027.06.12</span></div>
+      <div class="goalTop">
+        <div><div class="goalName" id="cashMainText">当前资产：0</div><div class="goalMeta" id="cashSubText">目标现金：300000</div></div>
+        <div class="goalPct" id="cashPct">0%</div>
+      </div>
+      <div class="bar"><span id="cashBar"></span></div>
+      <div class="tripleGrid" id="cashSummary" style="margin-top:12px"></div>
+      <details class="goalDetail">
+        <summary>展开编辑现金目标数字</summary>
+        <div class="detailInner">
+          <div class="detailGrid">
+            <div class="field"><label class="label">目标总现金</label><input type="number" min="0" data-cash="targetCash" id="cashTarget"></div>
+            <div class="field"><label class="label">截止日期</label><input type="date" data-cash="deadline" id="cashDeadline"></div>
+            <div class="field"><label class="label">现有存款</label><input type="number" min="0" data-cash="cashSavings" id="cashSavings"></div>
+            <div class="field"><label class="label">投资资产合计</label><input type="number" min="0" data-cash="investments" id="cashInvestments"></div>
+            <div class="field"><label class="label">月工资到手</label><input type="number" min="0" data-cash="monthlySalary" id="cashSalary"></div>
+            <div class="field"><label class="label">月固定支出</label><input type="number" min="0" data-cash="monthlyExpense" id="cashExpense"></div>
+            <div class="field"><label class="label">预计年终奖</label><input type="number" min="0" data-cash="annualBonus" id="cashBonus"></div>
+            <div class="field"><label class="label">家教标准年收入</label><input type="number" min="0" data-cash="standardTutoringYearIncome" id="cashTutoringStd"></div>
+            <div class="field full"><label class="label">小说标准年收入</label><input type="number" min="0" data-cash="standardFictionYearIncome" id="cashFictionStd"></div>
+          </div>
+          <div class="tiny" style="margin-top:10px">保险属于风险保障，不计入可动用现金目标。标准预测按：当前资产 + 工资净存 + 年终奖 + 家教标准年收入 + 小说标准年收入。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <div class="sectionHead"><h2>今日任务</h2><span class="tag">完成就勾掉</span></div>
+      <div class="row" style="margin-bottom:12px"><div class="grow"><input id="taskInput" type="text" placeholder="新增一个今日任务"></div><button class="btn primary" id="addTaskBtn">添加</button></div>
+      <ul class="clean" id="taskList"></ul>
+    </div>
+
+    <div class="card">
+      <div class="sectionHead"><h2>三条主线</h2><span class="tag">阶段进度</span></div>
+      <div id="mainLineCards"></div>
+    </div>
+
+    <div class="card">
+      <div class="sectionHead"><h2>本周普通主线</h2><span class="tag">保留原逻辑</span></div>
+      <div id="goals"></div>
+    </div>
+  </section>
+
+  <section class="page" id="page-lines">
+    <div class="card">
+      <div class="sectionHead"><h2>雅思整体进度</h2><span class="tag">8.16 考试版</span></div>
+      <div class="goalTop"><div><div class="goalName" id="ieltsOverallText">雅思整体：0%</div><div class="goalMeta">练习量40% + 能力稳定40% + 考试准备20%</div></div><div class="goalPct" id="ieltsOverallPill">0%</div></div>
+      <div class="bar"><span id="ieltsOverallBar"></span></div>
+      <div class="tripleGrid" id="ieltsSummary" style="margin-top:12px"></div>
+      <details class="goalDetail" open>
+        <summary>填写雅思数据</summary>
+        <div class="detailInner">
+          <div class="sectionHead" style="margin-top:4px"><h2>练习量</h2><span class="tag">阅读40 / 听力40 / 写作60 / 口语110</span></div>
+          <div class="detailGrid">
+            <div><label class="label">阅读完成套数 / 40</label><input type="number" min="0" data-ielts="readingDone" id="ieltsReadingDone"></div>
+            <div><label class="label">听力完成套数 / 40</label><input type="number" min="0" data-ielts="listeningDone" id="ieltsListeningDone"></div>
+            <div><label class="label">小作文完成篇数 / 30</label><input type="number" min="0" data-ielts="task1Done" id="ieltsTask1Done"></div>
+            <div><label class="label">大作文完成篇数 / 30</label><input type="number" min="0" data-ielts="task2Done" id="ieltsTask2Done"></div>
+            <div class="field full"><label class="label">口语练习次数 / 110</label><input type="number" min="0" data-ielts="speakingDone" id="ieltsSpeakingDone"></div>
+          </div>
+          <div class="sectionHead" style="margin-top:16px"><h2>能力稳定度</h2><span class="tag">阅读9 / 听力9 / 写作8 / 口语8</span></div>
+          <div class="detailGrid">
+            <div><label class="label">阅读最近3次平均 / 9</label><input type="number" min="0" max="9" step="0.5" data-ielts-score="readingAvg" id="ieltsReadingAvg"></div>
+            <div><label class="label">听力最近3次平均 / 9</label><input type="number" min="0" max="9" step="0.5" data-ielts-score="listeningAvg" id="ieltsListeningAvg"></div>
+            <div><label class="label">写作最近3次平均 / 8</label><input type="number" min="0" max="9" step="0.5" data-ielts-score="writingAvg" id="ieltsWritingAvg"></div>
+            <div><label class="label">口语最近3次平均 / 8</label><input type="number" min="0" max="9" step="0.5" data-ielts-score="speakingAvg" id="ieltsSpeakingAvg"></div>
+          </div>
+          <div class="sectionHead" style="margin-top:16px"><h2>考试准备度</h2><span class="tag">剑雅20模考 + 考前清单</span></div>
+          <div class="detailGrid"><div class="field full"><label class="label">剑雅20完整模考套数 / 4</label><input type="number" min="0" max="4" data-ielts="mockDone" id="ieltsMockDone"></div></div>
+          <div class="prepList" id="prepChecklist"></div>
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <div class="sectionHead"><h2>家教阶段进度</h2><span class="tag">标准版</span></div>
+      <div class="goalTop"><div><div class="goalName" id="tutoringOverallText">家教整体：0%</div><div class="goalMeta" id="tutoringStageText">阶段1｜0-90天</div></div><div class="goalPct" id="tutoringOverallPill">0%</div></div>
+      <div class="bar"><span id="tutoringOverallBar"></span></div>
+      <div class="tripleGrid" id="tutoringSummary" style="margin-top:12px"></div>
+      <details class="goalDetail" open>
+        <summary>填写家教数据</summary>
+        <div class="detailInner">
+          <div class="detailGrid">
+            <div class="field full"><label class="label">当前阶段</label><select data-tutoring="stage" id="tutoringStage"></select></div>
+            <div><label class="label">当前稳定月收入</label><input type="number" min="0" data-tutoring="currentIncome" id="tutoringIncome"></div>
+            <div><label class="label">当前稳定学生数</label><input type="number" min="0" data-tutoring="currentStudents" id="tutoringStudents"></div>
+            <div class="field full"><label class="label">已发布招生内容数</label><input type="number" min="0" data-tutoring="publishedActions" id="tutoringActions"></div>
+          </div>
+          <div class="tiny" id="tutoringTargetsText" style="margin-top:10px"></div>
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <div class="sectionHead"><h2>小说阶段进度</h2><span class="tag">标准版 + 收入目标</span></div>
+      <div class="goalTop"><div><div class="goalName" id="fictionOverallText">小说整体：0%</div><div class="goalMeta" id="fictionStageText">阶段1｜0-90天</div></div><div class="goalPct" id="fictionOverallPill">0%</div></div>
+      <div class="bar"><span id="fictionOverallBar"></span></div>
+      <div class="tripleGrid" id="fictionSummary" style="margin-top:12px"></div>
+      <details class="goalDetail" open>
+        <summary>填写小说数据</summary>
+        <div class="detailInner">
+          <div class="detailGrid">
+            <div class="field full"><label class="label">当前阶段</label><select data-fiction="stage" id="fictionStage"></select></div>
+            <div><label class="label">原创初稿完成数</label><input type="number" min="0" data-fiction="draftsDone" id="fictionDrafts"></div>
+            <div><label class="label">拆解完成数</label><input type="number" min="0" data-fiction="analysisDone" id="fictionAnalysis"></div>
+            <div><label class="label">仿写片段数</label><input type="number" min="0" data-fiction="imitationsDone" id="fictionImitations"></div>
+            <div><label class="label">修改轮次</label><input type="number" min="0" data-fiction="revisionsDone" id="fictionRevisions"></div>
+            <div class="field full"><label class="label">当前小说收入</label><input type="number" min="0" data-fiction="incomeDone" id="fictionIncome"></div>
+          </div>
+          <div class="tiny" id="fictionTargetsText" style="margin-top:10px"></div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="page" id="page-review">
+    <div class="card"><div class="sectionHead"><h2>今日复盘</h2><span class="tag">今天推进了什么</span></div>
+      <div style="margin-bottom:12px"><label class="label">今天推进了什么</label><textarea id="reviewToday"></textarea></div>
+      <div style="margin-bottom:12px"><label class="label">明天先做什么</label><textarea id="reviewTomorrow"></textarea></div>
+      <label class="row" style="align-items:flex-start;gap:8px"><input type="checkbox" id="dailyCheck" style="width:18px;height:18px;accent-color:#111827;margin-top:2px"><span class="tiny" style="font-size:13px">今天我有没有至少推进主线，而不是只忙别的？</span></label>
+    </div>
+    <div class="card"><div class="sectionHead"><h2>已拥有清单</h2><span class="tag">看见已有资产</span></div>
+      <div class="row" style="margin-bottom:12px"><div class="grow"><input id="winInput" type="text" placeholder="记录你已经有了什么"></div><button class="btn success" id="addWinBtn">添加</button></div>
+      <ul class="clean" id="winList"></ul>
+    </div>
+  </section>
+
+  <section class="page" id="page-parking">
+    <div class="card"><div class="sectionHead"><h2>灵感停车场</h2><span class="tag">先记下，避免跑偏</span></div>
+      <div class="row" style="margin-bottom:12px"><div class="grow"><input id="ideaInput" type="text" placeholder="把新想法先放这"></div><button class="btn warn" id="addIdeaBtn">添加</button></div>
+      <ul class="clean" id="ideaList"></ul>
+    </div>
+  </section>
+
+  <section class="page" id="page-settings">
+    <div class="card"><div class="sectionHead"><h2>设置</h2><span class="tag">提醒 / 云同步 / 备份</span></div>
+      <div class="statusBlock" id="cloudStatus">云端状态：<strong>未配置</strong></div>
+      <div class="statusBlock" id="reminderStatus">提醒状态：<strong>未开启</strong></div>
+      <div class="quickGrid" style="margin-bottom:12px">
+        <button class="btn success block" id="cloudSaveBtn">同步到云端</button><button class="btn block" id="cloudLoadBtn">从云端恢复</button>
+        <button class="btn soft block" id="copyFocusBtn">复制今日提醒</button><button class="btn warn block" id="notifyBtn">开启/更新定时提醒</button>
+        <button class="btn success block" id="exportBtn">导出备份</button><button class="btn block" id="importBtn">导入备份</button><input class="hidden-file" type="file" id="importFile" accept="application/json,.json">
+        <button class="btn soft block" id="checkUpdateBtn">检查更新</button><button class="btn block" id="openReleaseBtn">打开下载页</button>
+      </div>
+      <div style="margin-bottom:12px"><label class="label">早上提醒</label><textarea id="morningTip"></textarea></div>
+      <div style="margin-bottom:12px"><label class="label">中午提醒</label><textarea id="noonTip"></textarea></div>
+      <div style="margin-bottom:12px"><label class="label">晚上提醒</label><textarea id="nightTip"></textarea></div>
+      <div class="actionRow"><button class="btn block" id="showMorning">弹出早提醒</button><button class="btn block" id="showNoon">弹出中提醒</button><button class="btn block" id="showNight">弹出晚提醒</button></div>
+    </div>
+  </section>
+</div>
+
+<nav class="bottomNav">
+  <button class="tabBtn active" data-page="home">首页</button>
+  <button class="tabBtn" data-page="lines">主线</button>
+  <button class="tabBtn" data-page="review">复盘</button>
+  <button class="tabBtn" data-page="parking">停车场</button>
+  <button class="tabBtn" data-page="settings">设置</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY='direction-board-v4';
+const CLOUD_API_URL='PASTE_YOUR_WEB_APP_URL_HERE';
+const CLOUD_TOKEN='PASTE_YOUR_TOKEN_HERE';
+
+const APP_VERSION_CODE = 1;
+const APP_VERSION_NAME = '1.0.0';
+const UPDATE_JSON_URL = 'https://raw.githubusercontent.com/yufenn122-boop/direction-board-app/main/version.json';
+
+const tutoringStages=[
+  {name:'阶段1：0-90天｜跑通获客', income:6000, students:3, actions:48},
+  {name:'阶段2：90-180天｜提高收入与单价', income:10000, students:4, actions:60},
+  {name:'阶段3：180-365天｜稳定续费与转介绍', income:12000, students:5, actions:72},
+  {name:'阶段4：365天+｜高单价稳定模型', income:15000, students:6, actions:96}
+];
+
+const fictionStages=[
+  {name:'阶段1：0-90天｜建立产出系统', drafts:12, analysis:12, imitations:18, revisions:12, income:500, weights:{drafts:.45, analysis:.20, imitations:.15, revisions:.15, income:.05}},
+  {name:'阶段2：90-180天｜筛选可变现方向', drafts:10, analysis:8, imitations:12, revisions:20, income:2000, weights:{drafts:.30, revisions:.25, analysisImitation:.15, income:.20, publish:.10}},
+  {name:'阶段3：180-365天｜作品集与变现尝试', drafts:20, analysis:12, imitations:12, revisions:40, income:8000, weights:{drafts:.20, revisions:.30, income:.25, analysisImitation:.15, publish:.10}},
+  {name:'阶段4：365天+｜长期作品收入线', drafts:40, analysis:24, imitations:24, revisions:80, income:50000, weights:{income:.35, revisions:.25, drafts:.20, analysisImitation:.20}}
+];
+
+const defaultState={
+  northStar:'27岁前累计现金 30w；8 月雅思 8+，冲 8.5；家教稳定增收；短篇小说持续产出并验证收入。',
+  todayFocus:'先推进今天最重要的主线动作。',
+  morningTip:'先看北极星，再做主线。别让新想法抢走今天的主线。',
+  noonTip:'中午检查一次：今天是否真的在推进雅思、家教、小说？',
+  nightTip:'晚上复盘：今天有没有比昨天多一点点？',
+  goals:[
+    {id:cryptoId(),name:'雅思',why:'8.16考试，总分8，冲8.5。',target:6,done:0,unit:'次',note:'阅读听力稳9，写作口语按8训练。'},
+    {id:cryptoId(),name:'家教',why:'现金主引擎。',target:4,done:0,unit:'次',note:'阶段1：发布招生内容，稳定学生。'},
+    {id:cryptoId(),name:'短篇小说',why:'高赔率收入线。',target:1,done:0,unit:'篇',note:'每周完成一篇原创初稿。'}
+  ],
+  tasks:[],wins:[],ideas:[],reviewToday:'',reviewTomorrow:'',dailyCheck:false,
+  notifyEnabled:false,appNotifyEnabled:false,lastReminderSyncAt:'',lastCloudSyncAt:'',activePage:'home',
+  ielts:{readingDone:0,listeningDone:0,task1Done:0,task2Done:0,speakingDone:0,mockDone:0,scores:{readingAvg:0,listeningAvg:0,writingAvg:0,speakingAvg:0},prepChecks:Array(10).fill(false)},
+  tutoring:{stage:0,currentIncome:2320,currentStudents:0,publishedActions:0},
+  fiction:{stage:0,draftsDone:0,analysisDone:0,imitationsDone:0,revisionsDone:0,incomeDone:0},
+  cash:{targetCash:300000,deadline:'2027-06-12',cashSavings:71630,investments:8100,monthlySalary:6500,monthlyExpense:1000,annualBonus:6500,standardTutoringYearIncome:120000,standardFictionYearIncome:10500}
+};
+
+let state=loadState();
+const el=id=>document.getElementById(id);
+function cryptoId(){return (window.crypto&&crypto.randomUUID)?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now().toString(36)}
+function copy(o){return typeof structuredClone==='function'?structuredClone(o):JSON.parse(JSON.stringify(o))}
+function esc(s=''){return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#039;")}
+function clamp01(v){return Math.max(0,Math.min(1,Number(v)||0))}
+function pct(v){return Math.round(clamp01(v)*100)}
+function money(n){return Math.round(Number(n)||0).toLocaleString('zh-CN')}
+function normalize(input){
+  const base=copy(defaultState), saved=input&&typeof input==='object'?input:{};
+  return {...base,...saved,
+    goals:Array.isArray(saved.goals)&&saved.goals.length?saved.goals:base.goals,
+    tasks:Array.isArray(saved.tasks)?saved.tasks:[],wins:Array.isArray(saved.wins)?saved.wins:[],ideas:Array.isArray(saved.ideas)?saved.ideas:[],
+    ielts:{...base.ielts,...(saved.ielts||{}),scores:{...base.ielts.scores,...((saved.ielts&&saved.ielts.scores)||{})},prepChecks:Array.isArray(saved.ielts&&saved.ielts.prepChecks)?saved.ielts.prepChecks.slice(0,10).concat(Array(Math.max(0,10-saved.ielts.prepChecks.length)).fill(false)):base.ielts.prepChecks},
+    tutoring:{...base.tutoring,...(saved.tutoring||{})},
+    fiction:{...base.fiction,...(saved.fiction||{})},
+    cash:{...base.cash,...(saved.cash||{})}
+  };
+}
+function loadState(){try{const raw=localStorage.getItem(KEY)||localStorage.getItem('direction-board-v3')||localStorage.getItem('direction-board-v2')||localStorage.getItem('direction-board-v1');return raw?normalize(JSON.parse(raw)):copy(defaultState)}catch(e){return copy(defaultState)}}
+function saveState(){localStorage.setItem(KEY,JSON.stringify(state));renderAllLight();scheduleCloudSync();scheduleReminderUpdate()}
+function toast(msg){const t=el('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._timer);toast._timer=setTimeout(()=>t.classList.remove('show'),2400)}
+
+function calcIelts(){
+  const i=state.ielts,s=i.scores||{};
+  const reading=clamp01(i.readingDone/40), listening=clamp01(i.listeningDone/40), task1=clamp01(i.task1Done/30), task2=clamp01(i.task2Done/30), writing=(task1+task2)/2, speaking=clamp01(i.speakingDone/110);
+  const practice=(reading+listening+writing+speaking)/4;
+  const stability=(clamp01(s.readingAvg/9)+clamp01(s.listeningAvg/9)+clamp01(s.writingAvg/8)+clamp01(s.speakingAvg/8))/4;
+  const mock=clamp01(i.mockDone/4), checks=Array.isArray(i.prepChecks)?i.prepChecks:[], checklist=clamp01(checks.filter(Boolean).length/10), examReady=mock*.5+checklist*.5;
+  const overall=practice*.4+stability*.4+examReady*.2;
+  return {overall:pct(overall),practice:pct(practice),stability:pct(stability),examReady:pct(examReady)};
+}
+function calcTutoring(){
+  const t=state.tutoring, st=tutoringStages[Number(t.stage)||0]||tutoringStages[0];
+  const income=clamp01(t.currentIncome/st.income), actions=clamp01(t.publishedActions/st.actions), students=clamp01(t.currentStudents/st.students);
+  const overall=income*.6+actions*.25+students*.15;
+  return {overall:pct(overall),income:pct(income),actions:pct(actions),students:pct(students),stage:st};
+}
+function calcFiction(){
+  const f=state.fiction, st=fictionStages[Number(f.stage)||0]||fictionStages[0], w=st.weights;
+  const drafts=clamp01(f.draftsDone/st.drafts), analysis=clamp01(f.analysisDone/st.analysis), imitations=clamp01(f.imitationsDone/st.imitations), revisions=clamp01(f.revisionsDone/st.revisions), income=clamp01(f.incomeDone/st.income);
+  const analysisImitation=(analysis+imitations)/2;
+  let overall=0;
+  if(f.stage==0 || f.stage==='0') overall=drafts*.45+analysis*.2+imitations*.15+revisions*.15+income*.05;
+  else if(f.stage==1 || f.stage==='1') overall=drafts*.30+revisions*.25+analysisImitation*.15+income*.20; // 投稿/发布10%暂不计入，避免增加过多字段
+  else if(f.stage==2 || f.stage==='2') overall=drafts*.20+revisions*.30+income*.25+analysisImitation*.15;
+  else overall=income*.35+revisions*.25+drafts*.20+analysisImitation*.20;
+  return {overall:pct(overall),drafts:pct(drafts),study:pct(analysisImitation),revisions:pct(revisions),income:pct(income),stage:st};
+}
+function calcStageMain(){const i=calcIelts().overall,t=calcTutoring().overall,f=calcFiction().overall;return {overall:Math.round(i*.4+t*.3+f*.3),ielts:i,tutoring:t,fiction:f}}
+function calcWeekAvg(){if(!state.goals.length)return 0;return Math.round(state.goals.reduce((s,g)=>s+progressPct(g),0)/state.goals.length)}
+function calcCash(){
+  const c=state.cash, current=(Number(c.cashSavings)||0)+(Number(c.investments)||0), target=Number(c.targetCash)||300000;
+  const gap=Math.max(0,target-current), pctNow=pct(current/target);
+  const salaryNet=(Number(c.monthlySalary)||0)-(Number(c.monthlyExpense)||0);
+  const standard=current+(salaryNet*12)+(Number(c.annualBonus)||0)+(Number(c.standardTutoringYearIncome)||0)+(Number(c.standardFictionYearIncome)||0);
+  return {current,target,gap,pctNow,standard,standardGap:target-standard};
+}
+
+function renderAll(){['northStar','todayFocus','morningTip','noonTip','nightTip','reviewToday','reviewTomorrow'].forEach(id=>{if(el(id))el(id).value=state[id]});el('dailyCheck').checked=!!state.dailyCheck;renderAllLight();renderTasks();renderGoals();renderSimpleList('wins','winList','win');renderSimpleList('ideas','ideaList','idea');renderFormValues();switchPage(state.activePage||'home',false)}
+function renderAllLight(){renderHeader();renderFocus();renderStats();renderCash();renderMainCards();renderIelts();renderTutoring();renderFiction();renderCloudStatus();renderReminderStatus();}
+function renderHeader(){const h=el('headerSyncMini');if(!h)return;h.textContent=isCloudConfigured()?(state.lastCloudSyncAt?`已同步 ${new Date(state.lastCloudSyncAt).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`:'云端已配置'):'本地保存中'}
+function renderFocus(){if(el('focusPreview'))el('focusPreview').textContent=state.todayFocus?.trim()||'先做主线。';if(el('directionHint')){const m=calcStageMain();el('directionHint').innerHTML=`当前阶段主线 <strong>${m.overall}%</strong>。雅思 ${m.ielts}%｜家教 ${m.tutoring}%｜小说 ${m.fiction}%。`}}
+function renderStats(){const m=calcStageMain(), done=state.tasks.filter(t=>t.done).length, total=state.tasks.length;el('stats').innerHTML=`<div class="miniStat"><div class="labelText">阶段主线</div><div class="num">${m.overall}%</div></div><div class="miniStat"><div class="labelText">30w现金</div><div class="num">${calcCash().pctNow}%</div></div><div class="miniStat"><div class="labelText">今日任务</div><div class="num">${done}/${total}</div></div>`}
+function renderCash(){const c=calcCash();el('cashMainText').textContent=`当前资产：${money(c.current)}`;el('cashSubText').textContent=`目标现金：${money(c.target)}｜还差：${money(c.gap)}`;el('cashPct').textContent=`${c.pctNow}%`;el('cashBar').style.width=`${c.pctNow}%`;el('cashSummary').innerHTML=`<div class="miniStat"><div class="labelText">当前资产</div><div class="num">${money(c.current)}</div></div><div class="miniStat"><div class="labelText">标准预测</div><div class="num">${money(c.standard)}</div></div><div class="miniStat"><div class="labelText">${c.standardGap>=0?'标准缺口':'标准余量'}</div><div class="num">${money(Math.abs(c.standardGap))}</div></div>`}
+function renderMainCards(){const m=calcStageMain();el('mainLineCards').innerHTML=[
+  ['雅思',m.ielts,'练习量 + 能力稳定 + 考试准备'],
+  ['家教',m.tutoring,'收入 + 获客发布 + 稳定学生'],
+  ['小说',m.fiction,'产出 + 修改 + 收入验证']
+].map(x=>`<div class="goalRow"><div class="goalTop"><div><div class="goalName">${x[0]}</div><div class="goalMeta">${x[2]}</div></div><div class="goalPct">${x[1]}%</div></div><div class="bar"><span style="width:${x[1]}%"></span></div></div>`).join('')}
+function renderIelts(){const p=calcIelts();el('ieltsOverallText').textContent=`雅思整体：${p.overall}%`;el('ieltsOverallPill').textContent=`${p.overall}%`;el('ieltsOverallBar').style.width=`${p.overall}%`;el('ieltsSummary').innerHTML=`<div class="progressBox"><div class="k">练习量</div><div class="v">${p.practice}%</div><div class="subBar"><span style="width:${p.practice}%"></span></div></div><div class="progressBox"><div class="k">能力稳定</div><div class="v">${p.stability}%</div><div class="subBar"><span style="width:${p.stability}%"></span></div></div><div class="progressBox"><div class="k">考试准备</div><div class="v">${p.examReady}%</div><div class="subBar"><span style="width:${p.examReady}%"></span></div></div>`;renderPrep()}
+function renderTutoring(){const p=calcTutoring();el('tutoringOverallText').textContent=`家教整体：${p.overall}%`;el('tutoringOverallPill').textContent=`${p.overall}%`;el('tutoringOverallBar').style.width=`${p.overall}%`;el('tutoringStageText').textContent=p.stage.name;el('tutoringSummary').innerHTML=`<div class="progressBox"><div class="k">阶段收入</div><div class="v">${p.income}%</div><div class="subBar"><span style="width:${p.income}%"></span></div></div><div class="progressBox"><div class="k">获客发布</div><div class="v">${p.actions}%</div><div class="subBar"><span style="width:${p.actions}%"></span></div></div><div class="progressBox"><div class="k">稳定学生</div><div class="v">${p.students}%</div><div class="subBar"><span style="width:${p.students}%"></span></div></div>`;el('tutoringTargetsText').textContent=`当前阶段目标：${money(p.stage.income)}/月｜${p.stage.students} 个稳定学生｜${p.stage.actions} 条招生内容。`}
+function renderFiction(){const p=calcFiction();el('fictionOverallText').textContent=`小说整体：${p.overall}%`;el('fictionOverallPill').textContent=`${p.overall}%`;el('fictionOverallBar').style.width=`${p.overall}%`;el('fictionStageText').textContent=p.stage.name;el('fictionSummary').innerHTML=`<div class="progressBox"><div class="k">原创初稿</div><div class="v">${p.drafts}%</div><div class="subBar"><span style="width:${p.drafts}%"></span></div></div><div class="progressBox"><div class="k">修改/训练</div><div class="v">${Math.round((p.study+p.revisions)/2)}%</div><div class="subBar"><span style="width:${Math.round((p.study+p.revisions)/2)}%"></span></div></div><div class="progressBox"><div class="k">收入验证</div><div class="v">${p.income}%</div><div class="subBar"><span style="width:${p.income}%"></span></div></div>`;el('fictionTargetsText').textContent=`当前阶段目标：${p.stage.drafts} 篇初稿｜${p.stage.analysis} 篇拆解｜${p.stage.imitations} 个仿写｜${p.stage.revisions} 轮修改｜收入 ${money(p.stage.income)}。`}
+
+function renderPrep(){const arr=['确认考试日期：8.16','完成报名 / 考位确认','熟悉考试流程','熟悉机考界面或纸笔流程','整理阅读错题类型','整理听力错题类型','整理小作文常见题型','整理大作文高频话题','口语 Part 1 高频题过完','口语 Part 2 / Part 3 高频题过完'];el('prepChecklist').innerHTML=arr.map((t,i)=>`<label class="prepItem"><input type="checkbox" data-prep="${i}" ${state.ielts.prepChecks[i]?'checked':''}><span>${esc(t)}</span></label>`).join('')}
+function renderFormValues(){const map={ieltsReadingDone:state.ielts.readingDone,ieltsListeningDone:state.ielts.listeningDone,ieltsTask1Done:state.ielts.task1Done,ieltsTask2Done:state.ielts.task2Done,ieltsSpeakingDone:state.ielts.speakingDone,ieltsMockDone:state.ielts.mockDone,ieltsReadingAvg:state.ielts.scores.readingAvg,ieltsListeningAvg:state.ielts.scores.listeningAvg,ieltsWritingAvg:state.ielts.scores.writingAvg,ieltsSpeakingAvg:state.ielts.scores.speakingAvg,tutoringIncome:state.tutoring.currentIncome,tutoringStudents:state.tutoring.currentStudents,tutoringActions:state.tutoring.publishedActions,fictionDrafts:state.fiction.draftsDone,fictionAnalysis:state.fiction.analysisDone,fictionImitations:state.fiction.imitationsDone,fictionRevisions:state.fiction.revisionsDone,fictionIncome:state.fiction.incomeDone,cashTarget:state.cash.targetCash,cashDeadline:state.cash.deadline,cashSavings:state.cash.cashSavings,cashInvestments:state.cash.investments,cashSalary:state.cash.monthlySalary,cashExpense:state.cash.monthlyExpense,cashBonus:state.cash.annualBonus,cashTutoringStd:state.cash.standardTutoringYearIncome,cashFictionStd:state.cash.standardFictionYearIncome};Object.entries(map).forEach(([id,v])=>{if(el(id))el(id).value=v??''});renderStageOptions()}
+function renderStageOptions(){el('tutoringStage').innerHTML=tutoringStages.map((s,i)=>`<option value="${i}" ${Number(state.tutoring.stage)===i?'selected':''}>${s.name}</option>`).join('');el('fictionStage').innerHTML=fictionStages.map((s,i)=>`<option value="${i}" ${Number(state.fiction.stage)===i?'selected':''}>${s.name}</option>`).join('')}
+
+function progressPct(g){const target=Number(g.target)||0,done=Number(g.done)||0;return target<=0?0:Math.max(0,Math.min(100,Math.round(done/target*100)))}
+function renderGoals(){const c=el('goals');c.innerHTML=state.goals.map(g=>{const p=progressPct(g);return`<div class="goalRow"><div class="goalTop"><div><div class="goalName">${esc(g.name)}</div><div class="goalMeta">${esc(String(g.done||0))}/${esc(String(g.target||0))} ${esc(g.unit||'')}</div></div><div class="goalPct">${p}%</div></div><div class="bar"><span style="width:${p}%"></span></div><div class="tiny">${esc(g.why||'')}</div><div class="pillLine"><button class="btn" data-action="dec-goal" data-id="${g.id}">-1</button><button class="btn soft" data-action="inc-goal" data-id="${g.id}">+1</button></div><details class="goalDetail"><summary>展开编辑</summary><div class="detailInner"><div class="detailGrid"><div><label class="label">目标名</label><input data-role="goal-name" data-id="${g.id}" value="${esc(g.name)}"></div><div><label class="label">单位</label><input data-role="goal-unit" data-id="${g.id}" value="${esc(g.unit||'')}"></div><div><label class="label">本周目标</label><input type="number" min="0" data-role="goal-target" data-id="${g.id}" value="${esc(String(g.target||0))}"></div><div><label class="label">本周已完成</label><input type="number" min="0" data-role="goal-done" data-id="${g.id}" value="${esc(String(g.done||0))}"></div><div class="field full"><label class="label">为什么做它</label><textarea data-role="goal-why" data-id="${g.id}">${esc(g.why||'')}</textarea></div><div class="field full"><label class="label">备注</label><textarea data-role="goal-note" data-id="${g.id}">${esc(g.note||'')}</textarea></div></div><div class="actionRow" style="margin-top:10px"><button class="btn warn block" data-action="reset-goal" data-id="${g.id}">清零</button><button class="btn danger block" data-action="delete-goal" data-id="${g.id}">删除</button></div></div></details></div>`}).join('')}
+function renderTasks(){const c=el('taskList');c.innerHTML=state.tasks.length?state.tasks.map(t=>`<li class="listItem ${t.done?'taskDone':''}"><div class="taskLeft"><input type="checkbox" data-action="toggle-task" data-id="${t.id}" ${t.done?'checked':''}><div><div class="text">${esc(t.text)}</div><div class="tiny">${t.done?'已完成':'进行中'}</div></div></div><button class="btn danger" data-action="delete-task" data-id="${t.id}">删除</button></li>`).join(''):'<li class="empty">还没有任务。先加一条今天的主线动作。</li>'}
+function renderSimpleList(key,id,type){const list=state[key],c=el(id);c.innerHTML=list.length?list.map((text,idx)=>`<li class="listItem"><div style="flex:1;min-width:0"><div class="text">${esc(text)}</div><div class="tiny">${type==='win'?'已拥有 / 已做到':'先放着，明天再判断'}</div></div><button class="btn danger" data-action="delete-${type}" data-idx="${idx}">删除</button></li>`).join(''):'<li class="empty">还没有内容，先记一点点。</li>'}
+
+function bindText(id,key){el(id).addEventListener('input',e=>{state[key]=e.target.value;saveState()})}
+['northStar','todayFocus','morningTip','noonTip','nightTip','reviewToday','reviewTomorrow'].forEach(id=>bindText(id,id));
+el('dailyCheck').addEventListener('change',e=>{state.dailyCheck=e.target.checked;saveState()});
+el('addTaskBtn').addEventListener('click',addTask);el('taskInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addTask()}});
+function addTask(){const input=el('taskInput'),text=input.value.trim();if(!text)return toast('先写一条任务再添加。');state.tasks.unshift({id:cryptoId(),text,done:false});input.value='';saveState();renderTasks();toast('任务已加入。')}
+el('addWinBtn').addEventListener('click',()=>addSimple('winInput','wins','已记录到“已拥有清单”。'));el('winInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addSimple('winInput','wins','已记录到“已拥有清单”。')}});
+el('addIdeaBtn').addEventListener('click',()=>addSimple('ideaInput','ideas','想法已进入停车场。'));el('ideaInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addSimple('ideaInput','ideas','想法已进入停车场。')}});
+function addSimple(inputId,key,msg){const input=el(inputId),text=input.value.trim();if(!text)return toast('先写一点内容。');state[key].unshift(text);input.value='';saveState();renderSimpleList(key,key==='wins'?'winList':'ideaList',key==='wins'?'win':'idea');toast(msg)}
+
+document.addEventListener('input',e=>{
+  if(e.target.dataset.ielts){state.ielts[e.target.dataset.ielts]=Math.max(0,Number(e.target.value)||0);saveState()}
+  if(e.target.dataset.ieltsScore){state.ielts.scores[e.target.dataset.ieltsScore]=Math.max(0,Number(e.target.value)||0);saveState()}
+  if(e.target.dataset.tutoring){const k=e.target.dataset.tutoring;state.tutoring[k]=k==='stage'?Number(e.target.value):Math.max(0,Number(e.target.value)||0);saveState()}
+  if(e.target.dataset.fiction){const k=e.target.dataset.fiction;state.fiction[k]=k==='stage'?Number(e.target.value):Math.max(0,Number(e.target.value)||0);saveState()}
+  if(e.target.dataset.cash){const k=e.target.dataset.cash;state.cash[k]=k==='deadline'?e.target.value:Math.max(0,Number(e.target.value)||0);saveState()}
+  const role=e.target.dataset.role,id=e.target.dataset.id;if(role&&id){const g=state.goals.find(x=>x.id===id);if(!g)return;if(role==='goal-name')g.name=e.target.value;if(role==='goal-unit')g.unit=e.target.value;if(role==='goal-why')g.why=e.target.value;if(role==='goal-note')g.note=e.target.value;if(role==='goal-target')g.target=Number(e.target.value)||0;if(role==='goal-done')g.done=Math.max(0,Number(e.target.value)||0);saveState();renderGoals();}
+});
+document.addEventListener('change',e=>{if(e.target.dataset.prep!==undefined){state.ielts.prepChecks[Number(e.target.dataset.prep)]=e.target.checked;saveState()}});
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-action]');if(!btn)return;const action=btn.dataset.action,id=btn.dataset.id,idx=btn.dataset.idx;
+  if(['inc-goal','dec-goal','reset-goal','delete-goal'].includes(action)){const g=state.goals.find(x=>x.id===id);if(!g)return;if(action==='inc-goal')g.done=(Number(g.done)||0)+1;if(action==='dec-goal')g.done=Math.max(0,(Number(g.done)||0)-1);if(action==='reset-goal')g.done=0;if(action==='delete-goal'){if(!confirm(`确定删除目标「${g.name}」吗？`))return;state.goals=state.goals.filter(x=>x.id!==id)}saveState();renderGoals();return}
+  if(action==='toggle-task'){const t=state.tasks.find(x=>x.id===id);if(t){t.done=!t.done;saveState();renderTasks()}return}
+  if(action==='delete-task'){state.tasks=state.tasks.filter(x=>x.id!==id);saveState();renderTasks();return}
+  if(action==='delete-win'){state.wins.splice(Number(idx),1);saveState();renderSimpleList('wins','winList','win');return}
+  if(action==='delete-idea'){state.ideas.splice(Number(idx),1);saveState();renderSimpleList('ideas','ideaList','idea');return}
+});
+
+// Cloud
+function isCloudConfigured(){return CLOUD_API_URL&&CLOUD_TOKEN&&!CLOUD_API_URL.includes('PASTE_YOUR')&&!CLOUD_TOKEN.includes('PASTE_YOUR')}
+let cloudSyncTimer=null,isLoadingFromCloud=false,lastCloudStatus='';
+function formatTime(iso){if(!iso)return'暂无';try{return new Date(iso).toLocaleString()}catch(e){return iso}}
+function renderCloudStatus(){const n=el('cloudStatus');if(!n)return;if(!isCloudConfigured()){n.innerHTML='云端状态：<strong>未配置</strong>。请在代码里填写 CLOUD_API_URL 和 CLOUD_TOKEN。';return}const time=state.lastCloudSyncAt?formatTime(state.lastCloudSyncAt):'暂无';n.innerHTML=`云端状态：<strong>${esc(lastCloudStatus||`已配置，最后同步：${time}`)}</strong>`}
+function scheduleCloudSync(){if(isLoadingFromCloud||!isCloudConfigured())return;clearTimeout(cloudSyncTimer);cloudSyncTimer=setTimeout(()=>saveToCloud(false),2000)}
+async function saveToCloud(showToast=true){if(!isCloudConfigured()){if(showToast)toast('还没有配置云端地址和 TOKEN。');renderCloudStatus();return}try{lastCloudStatus='正在同步...';renderCloudStatus();state.lastCloudSyncAt=new Date().toISOString();await fetch(CLOUD_API_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'save',token:CLOUD_TOKEN,data:state})});localStorage.setItem(KEY,JSON.stringify(state));lastCloudStatus=`已同步：${formatTime(state.lastCloudSyncAt)}`;renderCloudStatus();renderHeader();if(showToast)toast('已同步到云端。')}catch(e){lastCloudStatus='同步失败，本地已保存';renderCloudStatus();if(showToast)toast('云端同步失败，本地已保存。')}}
+function loadFromCloud(showToast=true){if(!isCloudConfigured()){if(showToast)toast('还没有配置云端地址和 TOKEN。');return}const cb='cloudLoad_'+Date.now()+'_'+Math.random().toString(36).slice(2);let script;window[cb]=json=>{try{if(!json||!json.ok){if(showToast)toast('云端读取失败');return}if(!json.data){if(showToast)toast('云端还没有数据。');return}isLoadingFromCloud=true;state=normalize(json.data);saveState();renderAll();if(showToast)toast('已从云端恢复最新数据。')}finally{isLoadingFromCloud=false;delete window[cb];if(script&&script.parentNode)script.parentNode.removeChild(script)}};script=document.createElement('script');script.src=CLOUD_API_URL+'?action=load&token='+encodeURIComponent(CLOUD_TOKEN)+'&callback='+encodeURIComponent(cb)+'&t='+Date.now();script.onerror=()=>{if(showToast)toast('云端读取失败，请检查链接、TOKEN 和部署权限。');delete window[cb];if(script&&script.parentNode)script.parentNode.removeChild(script)};document.body.appendChild(script)}
+el('cloudSaveBtn').addEventListener('click',()=>saveToCloud(true));el('cloudLoadBtn').addEventListener('click',()=>loadFromCloud(true));
+
+// Notifications
+const REMINDER_IDS=[9001,1301,2230];let reminderUpdateTimer=null;
+function getNativeLocalNotifications(){return window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.LocalNotifications?window.Capacitor.Plugins.LocalNotifications:null}
+function renderReminderStatus(){const n=el('reminderStatus');if(!n)return;const ready=!!getNativeLocalNotifications();if(state.appNotifyEnabled)n.innerHTML=`提醒状态：<strong>已开启</strong>。早 09:00 / 中 13:00 / 晚 22:30；最后更新：${esc(formatTime(state.lastReminderSyncAt))}`;else if(ready)n.innerHTML='提醒状态：<strong>App 本地通知可用</strong>。点击“开启/更新定时提醒”。';else n.innerHTML='提醒状态：<strong>网页预览模式</strong>。打包成 APK 后可使用安卓本地定时提醒。'}
+function scheduleReminderUpdate(){if(!state.appNotifyEnabled||!getNativeLocalNotifications())return;clearTimeout(reminderUpdateTimer);reminderUpdateTimer=setTimeout(()=>enableAppDailyReminders(false),3000)}
+async function enableAppDailyReminders(showToast=true){const L=getNativeLocalNotifications();if(!L){if('Notification'in window){const p=await Notification.requestPermission();if(p==='granted'){state.notifyEnabled=true;saveState();new Notification('方向板已开启',{body:'当前是网页预览模式；真正到点提醒需要安装 APK 后使用。'});toast('网页通知已开启；APK 里会使用安卓本地定时提醒。')}else toast('你没有允许通知。')}return}
+try{const p=await L.requestPermissions();if(!p||p.display!=='granted'){toast('没有通知权限。请在手机系统设置里允许这个 App 发送通知。');return}try{await L.createChannel({id:'direction_reminders',name:'方向板提醒',description:'早中晚提醒你回到主线',importance:4,visibility:1})}catch(e){}await L.cancel({notifications:REMINDER_IDS.map(id=>({id}))});await L.schedule({notifications:[{id:9001,title:'早上方向提醒',body:state.morningTip||'先看北极星，再做主线。',schedule:{on:{hour:9,minute:0},repeats:true},channelId:'direction_reminders'},{id:1301,title:'中午方向提醒',body:state.noonTip||'检查一次：今天是否真的在推进主线？',schedule:{on:{hour:13,minute:0},repeats:true},channelId:'direction_reminders'},{id:2230,title:'晚上复盘提醒',body:state.nightTip||'晚上复盘。',schedule:{on:{hour:22,minute:30},repeats:true},channelId:'direction_reminders'}]});state.notifyEnabled=true;state.appNotifyEnabled=true;state.lastReminderSyncAt=new Date().toISOString();localStorage.setItem(KEY,JSON.stringify(state));renderReminderStatus();if(showToast)toast('已设置每天 09:00 / 13:00 / 22:30 自动提醒。')}catch(e){console.error(e);toast('提醒设置失败，请检查通知权限或重新打开 App。')}}
+el('notifyBtn').addEventListener('click',()=>enableAppDailyReminders(true));
+function fireReminder(which){const body=which==='morning'?state.morningTip:which==='noon'?state.noonTip:state.nightTip;toast(body);if('Notification'in window&&Notification.permission==='granted')new Notification('方向提醒',{body})}
+el('showMorning').addEventListener('click',()=>fireReminder('morning'));el('showNoon').addEventListener('click',()=>fireReminder('noon'));el('showNight').addEventListener('click',()=>fireReminder('night'));
+
+
+// App update check
+function openExternalUrl(url) {
+  try {
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
+      window.Capacitor.Plugins.Browser.open({ url });
+      return;
+    }
+  } catch (err) {}
+  window.open(url, '_blank');
+}
+
+async function checkAppUpdate(showLatestToast = true) {
+  try {
+    toast('正在检查更新...');
+    const res = await fetch(UPDATE_JSON_URL + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('version.json 读取失败');
+    const info = await res.json();
+
+    const remoteCode = Number(info.versionCode) || 0;
+    const remoteName = info.versionName || '未知版本';
+    const apkUrl = info.apkUrl || 'https://github.com/yufenn122-boop/direction-board-app/releases/latest';
+    const note = info.updateNote || '';
+
+    if (remoteCode > APP_VERSION_CODE) {
+      const go = confirm(
+        `发现新版本：${remoteName}\n\n` +
+        `${note}\n\n` +
+        `当前版本：${APP_VERSION_NAME}\n是否打开下载页？`
+      );
+      if (go) openExternalUrl(apkUrl);
+    } else if (showLatestToast) {
+      toast(`已是最新版本：${APP_VERSION_NAME}`);
+    }
+  } catch (err) {
+    console.error(err);
+    toast('检查更新失败，请确认 GitHub version.json 可以访问。');
+  }
+}
+
+// import/export/copy
+el('copyFocusBtn').addEventListener('click',async()=>{const text=[`北极星：${state.northStar}`,`今天只做：${state.todayFocus}`,`早提醒：${state.morningTip}`,`中提醒：${state.noonTip}`,`晚提醒：${state.nightTip}`].join('\n');try{await navigator.clipboard.writeText(text);toast('今日提醒已复制。')}catch(e){toast('复制失败，你可以手动复制。')}});
+el('exportBtn').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`direction-board-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);toast('备份文件已导出。')});
+el('importBtn').addEventListener('click',()=>el('importFile').click());el('importFile').addEventListener('change',async e=>{const file=e.target.files&&e.target.files[0];if(!file)return;try{const imported=JSON.parse(await file.text());if(!confirm('确定导入这个备份吗？当前数据会被覆盖。'))return;state=normalize(imported);saveState();renderAll();toast('备份已导入。')}catch(err){toast('导入失败：文件不是有效 JSON。')}finally{e.target.value=''}});
+
+function switchPage(page,save=true){document.querySelectorAll('.page').forEach(n=>n.classList.remove('active'));const target=el('page-'+page);if(target)target.classList.add('active');document.querySelectorAll('.tabBtn').forEach(b=>b.classList.toggle('active',b.dataset.page===page));state.activePage=page;if(save)localStorage.setItem(KEY,JSON.stringify(state))}
+document.querySelectorAll('.tabBtn').forEach(btn=>btn.addEventListener('click',()=>switchPage(btn.dataset.page)));
+
+el('checkUpdateBtn').addEventListener('click', () => checkAppUpdate(true));
+el('openReleaseBtn').addEventListener('click', () => openExternalUrl('https://github.com/yufenn122-boop/direction-board-app/releases/latest'));
+
+renderAll();
+if(isCloudConfigured())setTimeout(()=>loadFromCloud(false),800);
+if(state.notifyEnabled&&'Notification'in window&&Notification.permission==='granted')setTimeout(()=>new Notification('今天的方向',{body:state.todayFocus||'先推进主线。'}),1200);
+</script>
+</body>
+</html>
