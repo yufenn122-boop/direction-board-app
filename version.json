@@ -1,6 +1,6 @@
 {
-  "versionCode": 1,
-  "versionName": "1.0.0",
-  "apkUrl": "https://github.com/你的用户名/direction-board-app/releases/latest",
-  "updateNote": "初始版本。"
+  "versionCode": 2,
+  "versionName": "1.0.1",
+  "apkUrl": "https://github.com/yufenn122-boop/direction-board-app/releases/latest",
+  "updateNote": "加入 GitHub 自动打包和 App 内检查更新功能。"
 }
