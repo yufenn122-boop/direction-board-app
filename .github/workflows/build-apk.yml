@@ -29,6 +29,15 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        
+      - name: Generate cloud config
+        run: |
+          cat > www/cloud-config.js <<EOF
+          window.CLOUD_CONFIG = {
+            CLOUD_API_URL: "${{ secrets.CLOUD_API_URL }}",
+            CLOUD_TOKEN: "${{ secrets.CLOUD_TOKEN }}"
+          };
+          EOF
 
       - name: Sync Capacitor Android
         run: npx cap sync android

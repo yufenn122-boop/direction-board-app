@@ -8,3 +8,4 @@ local.properties
 *.jks
 token*.txt
 *token*.txt
+www/cloud-config.js
