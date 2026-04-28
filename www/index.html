@@ -230,7 +230,6 @@
         <button class="btn success block" id="cloudSaveBtn">同步到云端</button><button class="btn block" id="cloudLoadBtn">从云端恢复</button>
         <button class="btn soft block" id="copyFocusBtn">复制今日提醒</button><button class="btn warn block" id="notifyBtn">开启/更新定时提醒</button>
         <button class="btn success block" id="exportBtn">导出备份</button><button class="btn block" id="importBtn">导入备份</button><input class="hidden-file" type="file" id="importFile" accept="application/json,.json">
-        <button class="btn soft block" id="checkUpdateBtn">检查更新</button><button class="btn block" id="openReleaseBtn">打开下载页</button>
       </div>
       <div style="margin-bottom:12px"><label class="label">早上提醒</label><textarea id="morningTip"></textarea></div>
       <div style="margin-bottom:12px"><label class="label">中午提醒</label><textarea id="noonTip"></textarea></div>
@@ -249,14 +248,11 @@
 </nav>
 <div class="toast" id="toast"></div>
 
+<script src="./cloud-config.js"></script>
 <script>
 const KEY='direction-board-v4';
-const CLOUD_API_URL='PASTE_YOUR_WEB_APP_URL_HERE';
-const CLOUD_TOKEN='PASTE_YOUR_TOKEN_HERE';
-
-const APP_VERSION_CODE = 1;
-const APP_VERSION_NAME = '1.0.0';
-const UPDATE_JSON_URL = 'https://raw.githubusercontent.com/yufenn122-boop/direction-board-app/main/version.json';
+const CLOUD_API_URL = (window.CLOUD_CONFIG && window.CLOUD_CONFIG.CLOUD_API_URL) || '';
+const CLOUD_TOKEN = (window.CLOUD_CONFIG && window.CLOUD_CONFIG.CLOUD_TOKEN) || '';
 
 const tutoringStages=[
   {name:'阶段1：0-90天｜跑通获客', income:6000, students:3, actions:48},
@@ -423,45 +419,6 @@ function fireReminder(which){const body=which==='morning'?state.morningTip:which
 el('showMorning').addEventListener('click',()=>fireReminder('morning'));el('showNoon').addEventListener('click',()=>fireReminder('noon'));el('showNight').addEventListener('click',()=>fireReminder('night'));
 
 
-// App update check
-function openExternalUrl(url) {
-  try {
-    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) {
-      window.Capacitor.Plugins.Browser.open({ url });
-      return;
-    }
-  } catch (err) {}
-  window.open(url, '_blank');
-}
-
-async function checkAppUpdate(showLatestToast = true) {
-  try {
-    toast('正在检查更新...');
-    const res = await fetch(UPDATE_JSON_URL + '?t=' + Date.now(), { cache: 'no-store' });
-    if (!res.ok) throw new Error('version.json 读取失败');
-    const info = await res.json();
-
-    const remoteCode = Number(info.versionCode) || 0;
-    const remoteName = info.versionName || '未知版本';
-    const apkUrl = info.apkUrl || 'https://github.com/yufenn122-boop/direction-board-app/releases/latest';
-    const note = info.updateNote || '';
-
-    if (remoteCode > APP_VERSION_CODE) {
-      const go = confirm(
-        `发现新版本：${remoteName}\n\n` +
-        `${note}\n\n` +
-        `当前版本：${APP_VERSION_NAME}\n是否打开下载页？`
-      );
-      if (go) openExternalUrl(apkUrl);
-    } else if (showLatestToast) {
-      toast(`已是最新版本：${APP_VERSION_NAME}`);
-    }
-  } catch (err) {
-    console.error(err);
-    toast('检查更新失败，请确认 GitHub version.json 可以访问。');
-  }
-}
-
 // import/export/copy
 el('copyFocusBtn').addEventListener('click',async()=>{const text=[`北极星：${state.northStar}`,`今天只做：${state.todayFocus}`,`早提醒：${state.morningTip}`,`中提醒：${state.noonTip}`,`晚提醒：${state.nightTip}`].join('\n');try{await navigator.clipboard.writeText(text);toast('今日提醒已复制。')}catch(e){toast('复制失败，你可以手动复制。')}});
 el('exportBtn').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`direction-board-backup-${new Date().toISOString().slice(0,10)}.json`;a.click();URL.revokeObjectURL(url);toast('备份文件已导出。')});
@@ -469,9 +426,6 @@ el('importBtn').addEventListener('click',()=>el('importFile').click());el('impor
 
 function switchPage(page,save=true){document.querySelectorAll('.page').forEach(n=>n.classList.remove('active'));const target=el('page-'+page);if(target)target.classList.add('active');document.querySelectorAll('.tabBtn').forEach(b=>b.classList.toggle('active',b.dataset.page===page));state.activePage=page;if(save)localStorage.setItem(KEY,JSON.stringify(state))}
 document.querySelectorAll('.tabBtn').forEach(btn=>btn.addEventListener('click',()=>switchPage(btn.dataset.page)));
-
-el('checkUpdateBtn').addEventListener('click', () => checkAppUpdate(true));
-el('openReleaseBtn').addEventListener('click', () => openExternalUrl('https://github.com/yufenn122-boop/direction-board-app/releases/latest'));
 
 renderAll();
 if(isCloudConfigured())setTimeout(()=>loadFromCloud(false),800);
